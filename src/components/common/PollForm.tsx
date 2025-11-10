@@ -1,110 +1,102 @@
-import { useState } from "react";
-import Input from "../ui/Input";
-import Button from "../ui/Button";
+import { useState } from 'react'
+import Input from '../ui/Input'
+import Button from '../ui/Button'
+import type { Question } from '../../types/poll'
 
-interface QuestionForm {
-  text: string;
-  options: string[];
-}
+export default function PollForm({
+  onSubmit,
+}: {
+  onSubmit: (poll: { title: string; questions: Question[] }) => void
+}) {
+  const [title, setTitle] = useState('')
+  const [questions, setQuestions] = useState<Question[]>([
+    { text: '', options: ['', ''], votes: [], correctOptionIndex: undefined },
+  ])
 
-interface PollFormProps {
-  onSubmit: (payload: { title: string; questions: QuestionForm[] }) => void;
-}
+  const addQuestion = () =>
+    setQuestions([
+      ...questions,
+      { text: '', options: ['', ''], votes: [], correctOptionIndex: undefined },
+    ])
 
-export default function PollForm({ onSubmit }: PollFormProps) {
-  const [title, setTitle] = useState("");
-  const [questions, setQuestions] = useState<QuestionForm[]>([
-    { text: "", options: ["", ""] },
-  ]);
-
-  // Додаємо нове питання
-  const addQuestion = () => {
-    setQuestions((q) => [...q, { text: "", options: ["", ""] }]);
-  };
-
-  // Оновлюємо текст питання
   const setQuestionText = (index: number, text: string) => {
-    setQuestions((q) => q.map((qt, i) => (i === index ? { ...qt, text } : qt)));
-  };
+    setQuestions((qs) => qs.map((q, i) => (i === index ? { ...q, text } : q)))
+  }
 
-  // Додаємо варіант відповіді для питання
   const addOption = (qIndex: number) => {
-    setQuestions((q) =>
-      q.map((qt, i) =>
-        i === qIndex ? { ...qt, options: [...qt.options, ""] } : qt
+    setQuestions((qs) =>
+      qs.map((q, i) =>
+        i === qIndex ? { ...q, options: [...q.options, ''] } : q
       )
-    );
-  };
+    )
+  }
 
-  // Оновлюємо варіант відповіді
   const setOption = (qIndex: number, oIndex: number, value: string) => {
-    setQuestions((q) =>
-      q.map((qt, i) =>
+    setQuestions((qs) =>
+      qs.map((q, i) =>
         i === qIndex
           ? {
-              ...qt,
-              options: qt.options.map((opt, j) => (j === oIndex ? value : opt)),
+              ...q,
+              options: q.options.map((o, idx) => (idx === oIndex ? value : o)),
             }
-          : qt
+          : q
       )
-    );
-  };
+    )
+  }
+
+  const setCorrectOption = (qIndex: number, oIndex: number) => {
+    setQuestions((qs) =>
+      qs.map((q, i) => (i === qIndex ? { ...q, correctOptionIndex: oIndex } : q))
+    )
+  }
 
   const handleSubmit = () => {
-    // Відфільтровуємо пусті питання та варіанти
-    const filtered = questions
-      .filter((q) => q.text.trim() !== "")
-      .map((q) => ({
-        text: q.text,
-        options: q.options.filter((o) => o.trim() !== ""),
-        votes: q.options.filter((o) => o.trim() !== "").map(() => 0),
-      }));
-
-    if (!title.trim() || filtered.length === 0) {
-      return alert("Title and at least one question with options are required");
-    }
-
-    onSubmit({ title, questions: filtered });
-
-    // Скидаємо форму
-    setTitle("");
-    setQuestions([{ text: "", options: ["", ""] }]);
-  };
+    const cleaned = questions.map((q) => ({
+      ...q,
+      options: q.options.filter(Boolean),
+      votes: q.options.filter(Boolean).map(() => 0),
+    }))
+    onSubmit({ title, questions: cleaned })
+    setTitle('')
+    setQuestions([{ text: '', options: ['', ''], votes: [], correctOptionIndex: undefined }])
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <label className="block font-medium">Poll Title</label>
-        <Input value={title} onChange={setTitle} placeholder="Title" />
+        <label className="block font-medium">Poll title</label>
+        <Input value={title} onChange={(v: string) => setTitle(v)} placeholder="Title" />
       </div>
 
       {questions.map((q, qi) => (
-        <div key={qi} className="border p-4 rounded space-y-3">
-          <div>
-            <label className="block font-medium">Question {qi + 1}</label>
-            <Input
-              value={q.text}
-              onChange={(t: string) => setQuestionText(qi, t)}
-              placeholder="Question text"
-            />
-          </div>
+        <div key={qi} className="border p-4 rounded space-y-2">
+          <label className="block font-medium">Question {qi + 1}</label>
+          <Input
+            value={q.text}
+            onChange={(v: string) => setQuestionText(qi, v)}
+            placeholder="Question text"
+          />
 
-          <div>
-            <label className="block font-medium">Options</label>
-            <div className="space-y-2">
-              {q.options.map((opt, oi) => (
+          <div className="space-y-1">
+            {q.options.map((opt, oi) => (
+              <div key={oi} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name={`correct-${qi}`}
+                  checked={q.correctOptionIndex === oi}
+                  onChange={() => setCorrectOption(qi, oi)}
+                />
                 <Input
-                  key={oi}
                   value={opt}
                   onChange={(v: string) => setOption(qi, oi, v)}
                   placeholder={`Option ${oi + 1}`}
                 />
-              ))}
-            </div>
+              </div>
+            ))}
             <button
-              onClick={() => addOption(qi)}
               type="button"
-              className="text-sm text-blue-600 mt-1"
+              onClick={() => addOption(qi)}
+              className="text-blue-600 text-sm mt-1"
             >
               + Add option
             </button>
@@ -112,10 +104,10 @@ export default function PollForm({ onSubmit }: PollFormProps) {
         </div>
       ))}
 
-      <div className="flex gap-2">
+      <div className="flex space-x-2">
         <Button onClick={addQuestion}>+ Add Question</Button>
         <Button onClick={handleSubmit}>Create Poll</Button>
       </div>
     </div>
-  );
+  )
 }
