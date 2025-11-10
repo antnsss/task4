@@ -1,28 +1,19 @@
 import { collection, addDoc, getDoc, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import type { Poll } from '../types/poll'
-
-import { auth } from './auth'
 import { db } from './firebase'
 
 const pollsCol = collection(db, 'polls')
 
 // Створити новий опитувальник
-export async function createPoll(poll: Omit<Poll, 'id' | 'createdAt' | 'ownerId'>) {
-  if (!auth.currentUser) throw new Error('User not logged in')
-
-  const ref = await addDoc(pollsCol, {
-    ...poll,
-    ownerId: auth.currentUser.uid,
-    createdAt: serverTimestamp(),
-  })
-
+export async function createPoll(poll: Omit<Poll, 'id' | 'createdAt' | 'ownerId'>, ownerId: string) {
+  const ref = await addDoc(pollsCol, { ...poll, ownerId, createdAt: serverTimestamp() })
   return ref.id
 }
 
 // Отримати один опитувальник
 export async function getPoll(id: string) {
-  const d = await getDoc(doc(db, 'polls', id))
-  return d.exists() ? ({ id: d.id, ...d.data() } as Poll) : null
+  const snap = await getDoc(doc(db, 'polls', id))
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Poll) : null
 }
 
 // Отримати всі опитувальники
@@ -32,19 +23,18 @@ export async function getAllPolls() {
 }
 
 // Проголосувати
-export async function vote(pollId: string, answers: { questionIndex: number; optionIndex: number }[]) {
+export async function vote(pollId: string, questionIndex: number, optionIndex: number) {
   const ref = doc(db, 'polls', pollId)
-  const p = await getDoc(ref)
-  if (!p.exists()) throw new Error('Poll not found')
+  const snap = await getDoc(ref)
+  if (!snap.exists()) throw new Error('Poll not found')
 
-  const data = p.data() as any
-  const questions = data.questions as any[]
+  const data = snap.data() as Poll
+  const questions = data.questions
 
-  answers.forEach(({ questionIndex, optionIndex }) => {
-    if (!questions[questionIndex]) throw new Error('Question not found')
-    questions[questionIndex].votes = questions[questionIndex].votes || Array(questions[questionIndex].options.length).fill(0)
-    questions[questionIndex].votes[optionIndex] = (questions[questionIndex].votes[optionIndex] || 0) + 1
-  })
+  if (!questions[questionIndex]) throw new Error('Question not found')
+
+  questions[questionIndex].votes = questions[questionIndex].votes || Array(questions[questionIndex].options.length).fill(0)
+  questions[questionIndex].votes[optionIndex] += 1
 
   await updateDoc(ref, { questions })
 }
