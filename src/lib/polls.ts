@@ -1,4 +1,4 @@
-import { collection, addDoc, getDoc, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, getDoc, getDocs, doc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore'
 import type { Poll } from '../types/poll'
 import { db } from './firebase'
 
@@ -20,6 +20,10 @@ export async function getPoll(id: string) {
 export async function getAllPolls() {
   const snap = await getDocs(pollsCol)
   return snap.docs.map(d => ({ id: d.id, ...d.data() } as Poll))
+}
+
+export async function deletePoll(pollId: string) { // видаляти дял адміна
+  await deleteDoc(doc(db, "polls", pollId));
 }
 
 // Проголосувати

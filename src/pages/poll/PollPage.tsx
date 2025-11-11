@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import usePoll from '../../hooks/usePoll'
 import { useState } from 'react'
-import { vote, getAllPolls } from '../../lib/polls'
+import { vote, getAllPolls, deletePoll } from '../../lib/polls'
 import { 
   Typography, 
   Radio, 
@@ -11,13 +11,16 @@ import {
   Button, 
   Box 
 } from '@mui/material'
+import type { Poll } from '../../types/poll'
 
 export default function PollPage() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { poll, loading, setPoll } = usePoll(id)
   const [selected, setSelected] = useState<number | null>(null)
   const [questionIndex, setQuestionIndex] = useState(0)
+
+  const currentUserId = "admin123" 
 
   if (loading) return <Typography>Loading...</Typography>
   if (!poll) return <Typography>Poll not found</Typography>
@@ -26,10 +29,9 @@ export default function PollPage() {
 
   const handleSubmit = async () => {
     if (selected === null) return alert('Choose option')
-    
-    await vote(poll.id!, questionIndex, selected)
 
-    const refreshed = await (await import('../../lib/polls')).getPoll(poll.id!)
+    await vote(poll.id!, questionIndex, selected)
+    const refreshed: Poll | null = await (await import('../../lib/polls')).getPoll(poll.id!)
     setPoll(refreshed)
 
     const correct = q.correctOptionIndex === selected
@@ -52,6 +54,15 @@ export default function PollPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this poll?')) return
+    if (!poll?.id) return
+
+    await deletePoll(poll.id)
+    alert('Poll deleted')
+    navigate('/')
+  }
+
   return (
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
@@ -66,7 +77,7 @@ export default function PollPage() {
           value={selected !== null ? selected.toString() : ''}
           onChange={(e) => setSelected(Number(e.target.value))}
         >
-          {q.options.map((opt, i) => (
+          {q.options.map((opt: string, i: number) => (
             <FormControlLabel
               key={i}
               value={i.toString()}
@@ -77,14 +88,16 @@ export default function PollPage() {
         </RadioGroup>
       </FormControl>
 
-      <Box mt={3}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-        >
+      <Box mt={3} display="flex" gap={2}>
+        <Button variant="contained" color="primary" onClick={handleSubmit}>
           Submit
         </Button>
+
+        {currentUserId === poll.ownerId && (
+          <Button variant="outlined" color="error" onClick={handleDelete}>
+            Delete Poll
+          </Button>
+        )}
       </Box>
     </Box>
   )
