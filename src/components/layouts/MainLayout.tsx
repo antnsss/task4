@@ -1,35 +1,105 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { signOutUser } from '../../lib/auth'
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { signOutUser } from "../../lib/auth";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Avatar,
+  Stack,
+  Container,
+} from "@mui/material";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, loading } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="font-bold text-xl">Polls</Link>
-          <nav className="space-x-4 flex items-center">
-            <Link to="/create" className="px-3 py-1 rounded bg-blue-600 text-white">Create</Link>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
+      <AppBar position="static" color="inherit" elevation={1}>
+        <Container maxWidth="lg">
+          <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography
+              component={Link}
+              to="/"
+              variant="h6"
+              sx={{
+                textDecoration: "none",
+                fontWeight: "bold",
+                color: "primary.main",
+              }}
+            >
+              Опитування
+            </Typography>
 
-            {!loading && !user && (
-              <>
-                <Link to="/auth/login" className="text-sm">Login</Link>
-                <Link to="/auth/register" className="text-sm">Register</Link>
-              </>
-            )}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Button
+                component={Link}
+                to="/create"
+                variant="contained"
+                color="primary"
+              >
+                Створити
+              </Button>
 
-            {user && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600">{user.email}</span>
-                <button onClick={() => signOutUser()} className="text-sm text-red-600">Sign out</button>
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
-      <main className="max-w-5xl mx-auto p-6">{children}</main>
-    </div>
-  )
+              {!loading && !user && (
+                <>
+                  <Button
+                    component={Link}
+                    to="/auth/login"
+                    color="inherit"
+                    size="small"
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="/auth/register"
+                    color="inherit"
+                    size="small"
+                  >
+                    Register
+                  </Button>
+                </>
+              )}
+
+              {user && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar
+                    sx={{
+                      bgcolor: "primary.main",
+                      width: 32,
+                      height: 32,
+                      fontSize: 14,
+                    }}
+                  >
+                    {user.email?.[0]?.toUpperCase()}
+                  </Avatar>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {user.email}
+                  </Typography>
+                  <Button
+                    color="error"
+                    size="small"
+                    onClick={() => signOutUser()}
+                  >
+                    вийти
+                  </Button>
+                </Stack>
+              )}
+            </Stack>
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+        {children}
+      </Container>
+    </Box>
+  );
 }

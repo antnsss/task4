@@ -1,45 +1,96 @@
-import { useEffect, useState } from 'react'
-import { getAllPolls } from '../../lib/polls'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { getAllPolls } from "../../lib/polls";
+import { Link as RouterLink } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  Button,
+  Divider,
+} from "@mui/material";
 
 export default function HomePage() {
-  const [polls, setPolls] = useState<any[]>([])
+  const [polls, setPolls] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
-      const data = await getAllPolls()
-      setPolls(data)
+      const data = await getAllPolls();
+      setPolls(data);
     }
-    load()
-  }, [])
+    load();
+  }, []);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">All Polls</h1>
+    <Box
+      sx={{
+        maxWidth: 800,
+        mx: "auto",
+        p: 4,
+        minHeight: "100vh",
+        bgcolor: "grey.100",
+      }}
+    >
+      <Typography variant="h4" fontWeight="600" gutterBottom>
+        Всі опитування
+      </Typography>
 
       {polls.length === 0 ? (
-        <p>No polls yet.</p>
+        <Typography color="text.secondary">Більше немає опитувань</Typography>
       ) : (
-        <div className="space-y-4">
+        <Stack spacing={2} mt={2}>
           {polls.map((p) => (
-            <div
+            <Paper
               key={p.id}
-              className="p-4 bg-white rounded shadow flex justify-between items-center"
+              elevation={2}
+              sx={{
+                p: 3,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderRadius: 2,
+              }}
             >
-              <div>
-                <h3 className="font-semibold">{p.title}</h3>
+              <Box>
+                <Typography variant="h6" fontWeight="500">
+                  {p.title}
+                </Typography>
                 {p.questions?.map((q: any, i: number) => (
-                  <p key={i} className="text-sm text-gray-500">{q.text}</p>
+                  <Typography
+                    key={i}
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ ml: 1 }}
+                  >
+                    • {q.text}
+                  </Typography>
                 ))}
-              </div>
-              <div className="space-x-2">
-                <Link to={`/poll/${p.id}`} className="text-sm text-blue-600">Take</Link>
-                <Link to={`/stats/${p.id}`} className="text-sm text-gray-600">Stats</Link>
-              </div>
-            </div>
+              </Box>
+
+              <Stack direction="row" spacing={1}>
+                <Button
+                  component={RouterLink}
+                  to={`/poll/${p.id}`}
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                >
+                  Пройти
+                </Button>
+                <Button
+                  component={RouterLink}
+                  to={`/stats/${p.id}`}
+                  variant="outlined"
+                  color="inherit"
+                  size="small"
+                >
+                  Статистика
+                </Button>
+              </Stack>
+            </Paper>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
-  )
+    </Box>
+  );
 }

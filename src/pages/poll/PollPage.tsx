@@ -1,7 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import usePoll from '../../hooks/usePoll'
-import { useState} from 'react'
+import { useState } from 'react'
 import { vote, getAllPolls } from '../../lib/polls'
+import { 
+  Typography, 
+  Radio, 
+  RadioGroup, 
+  FormControl, 
+  FormControlLabel, 
+  Button, 
+  Box 
+} from '@mui/material'
 
 export default function PollPage() {
   const { id } = useParams()
@@ -10,8 +19,8 @@ export default function PollPage() {
   const [selected, setSelected] = useState<number | null>(null)
   const [questionIndex, setQuestionIndex] = useState(0)
 
-  if (loading) return <div>Loading...</div>
-  if (!poll) return <div>Poll not found</div>
+  if (loading) return <Typography>Loading...</Typography>
+  if (!poll) return <Typography>Poll not found</Typography>
 
   const q = poll.questions[questionIndex]
 
@@ -31,7 +40,6 @@ export default function PollPage() {
     if (questionIndex < poll.questions.length - 1) {
       setQuestionIndex(questionIndex + 1)
     } else {
-    
       const allPolls = await getAllPolls()
       const currentIndex = allPolls.findIndex(p => p.id === poll.id)
       const nextPoll = allPolls[currentIndex + 1]
@@ -39,33 +47,45 @@ export default function PollPage() {
         navigate(`/poll/${nextPoll.id}`)
       } else {
         alert('You have completed all available polls!')
-        navigate('/') 
+        navigate('/')
       }
     }
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-3">{poll.title}</h1>
-      <p className="mb-4">{q.text}</p>
-      <div className="space-y-2">
-        {q.options.map((opt, i) => (
-          <label key={i} className="flex items-center space-x-2">
-            <input
-              type="radio"
-              name="opt"
-              checked={selected === i}
-              onChange={() => setSelected(i)}
+    <Box p={3}>
+      <Typography variant="h4" gutterBottom>
+        {poll.title}
+      </Typography>
+      <Typography variant="h6" mb={3}>
+        {q.text}
+      </Typography>
+
+      <FormControl component="fieldset">
+        <RadioGroup
+          value={selected !== null ? selected.toString() : ''}
+          onChange={(e) => setSelected(Number(e.target.value))}
+        >
+          {q.options.map((opt, i) => (
+            <FormControlLabel
+              key={i}
+              value={i.toString()}
+              control={<Radio />}
+              label={opt}
             />
-            <span>{opt}</span>
-          </label>
-        ))}
-      </div>
-      <div className="mt-4">
-        <button onClick={handleSubmit} className="px-4 py-2 rounded bg-green-600 text-white">
+          ))}
+        </RadioGroup>
+      </FormControl>
+
+      <Box mt={3}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+        >
           Submit
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   )
 }

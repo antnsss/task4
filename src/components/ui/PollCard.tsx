@@ -1,8 +1,24 @@
+import { Card, CardContent, Typography } from "@mui/material";
+
 export default function PollCard({ poll }: { poll: any }) {
   return (
-    <div className="border p-3 rounded shadow-sm">
-      <h2 className="font-semibold">{poll.title}</h2>
-      <p className="text-sm text-gray-600">{poll.description}</p>
-    </div>
+    <Card
+      variant="outlined"
+      sx={{
+        borderRadius: 2,
+        boxShadow: 1,
+        transition: "0.3s",
+        "&:hover": { boxShadow: 4 },
+      }}
+    >
+      <CardContent>
+        <Typography variant="h6" fontWeight="600">
+          {poll.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {poll.description}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }

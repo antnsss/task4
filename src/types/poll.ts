@@ -1,8 +1,8 @@
 export interface Question {
   text: string
   options: string[]
-  votes: number[]            // кількість голосів для кожної опції
-  correctOptionIndex?: number // індекс правильної відповіді
+  votes: number[]            
+  correctOptionIndex?: number 
 }
 
 export interface Poll {
@@ -10,5 +10,5 @@ export interface Poll {
   title: string
   questions: Question[]
   createdAt: { seconds: number; nanoseconds: number } | string | number
-  ownerId?: string           // id користувача, який створив опитування
+  ownerId?: string        
 }
